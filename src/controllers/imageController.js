@@ -1,6 +1,7 @@
 const path = require('path')
 const fs = require('fs-extra')
 const { getRandomString } = require('../helpers/libs')
+const { Image } = require('../models')
 
 const ctrl = {}
 
@@ -8,17 +9,38 @@ ctrl.index = (req, res) => {
 
 }
 
-ctrl.create = async (req, res) => {
-	const imgName = getRandomString(6)
-	const tempPath = req.file.path
-	const ext = path.extname(req.file.originalname).toLowerCase()
-	const targetPath = path.resolve(`src/public/upload/${imgName}${ext}`)
+ctrl.create = (req, res) => {
+	const saveImage = async () => {
+		// Comprobamos el filename
+		const imgName = getRandomString(6)
+		const images = await Image.find({filename: imgName})
+		if(images.length > 0) {
+			saveImage()
+		} else {
+			// Recogemos los datos de la img
+			const tempPath = req.file.path
+			const ext = path.extname(req.file.originalname).toLowerCase()
+			const targetPath = path.resolve(`src/public/upload/${imgName}${ext}`)
 
-	const admitedExts = ['.png', '.jpg', '.jpeg', '.gif']
-	if(admitedExts.includes(ext))
-		await fs.rename(tempPath, targetPath)
+			// Comprobamos que sea una imagen
+			const admitedExts = ['.png', '.jpg', '.jpeg', '.gif']
+			if(admitedExts.includes(ext)) {
+				await fs.rename(tempPath, targetPath)
+				const img = new Image({
+					title: req.body.title,
+					description: req.body.description,
+					filename: imgName + ext,
+				})
+				const imgSaved = await img.save()
+				res.send('Image uploaded succesfully')
+			} else {
+				await fs.unlink(tempPath)
+				res.status(500).json({error: 'Only images are allowed'})
+			}
+		}
+	}
 
-	res.send('works!')
+	saveImage()
 }
 
 ctrl.like = (req, res) => {
