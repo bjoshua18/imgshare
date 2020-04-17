@@ -4,11 +4,11 @@ const { getRandomString } = require('../helpers/libs')
 
 const ctrl = {}
 
-ctrl.index = async (req, res) => {
+ctrl.index = (req, res) => {
 
 }
 
-ctrl.create = (req, res) => {
+ctrl.create = async (req, res) => {
 	const imgName = getRandomString(6)
 	const tempPath = req.file.path
 	const ext = path.extname(req.file.originalname).toLowerCase()
