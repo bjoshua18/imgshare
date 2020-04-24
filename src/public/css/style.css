@@ -1,6 +1,9 @@
 body {
 	background-color: #dcdde1;
 }
+img {
+	object-fit: cover;
+}
 
 .navbar-brand img {
 	width: 60%;
