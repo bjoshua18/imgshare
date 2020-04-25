@@ -1,7 +1,8 @@
 const path = require('path')
 const fs = require('fs-extra')
+const md5 = require('md5')
 const { getRandomString } = require('../helpers/libs')
-const { Image } = require('../models')
+const { Image, Comment } = require('../models')
 
 const ctrl = {}
 
@@ -48,8 +49,15 @@ ctrl.like = (req, res) => {
 	
 }
 
-ctrl.comment = (req, res) => {
-	
+ctrl.comment = async (req, res) => {
+	const image = await Image.findOne({ filename: {$regex: req.params.image_id} })
+	if(image) {
+		const comment = new Comment(req.body)
+		comment.gravatar = md5(comment.email)
+		comment.image_id = image._id
+		await comment.save()
+		res.redirect(`/images/${image.uniqueId}`)
+	}
 }
 
 ctrl.remove = (req, res) => {
