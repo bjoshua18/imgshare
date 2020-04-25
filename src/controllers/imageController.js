@@ -5,8 +5,9 @@ const { Image } = require('../models')
 
 const ctrl = {}
 
-ctrl.index = (req, res) => {
-
+ctrl.index = async (req, res) => {
+	const image = await Image.findOne({filename: {$regex: req.params.image_id}}).lean({virtuals:true})
+	res.render('image', {image})
 }
 
 ctrl.create = (req, res) => {
@@ -32,7 +33,7 @@ ctrl.create = (req, res) => {
 					filename: imgName + ext,
 				})
 				const imgSaved = await img.save()
-				res.send('Image uploaded succesfully')
+				res.redirect(`/images/${imgName}`)
 			} else {
 				await fs.unlink(tempPath)
 				res.status(500).json({error: 'Only images are allowed'})

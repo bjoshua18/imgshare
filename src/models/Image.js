@@ -9,10 +9,13 @@ const ImageSchema = new Schema({
 	likes: { type: Number, default: 0 },
 	timestamp: { type: Date, default: Date.now() }
 })
-// No funciona
-// ImageSchema.virtual('uniqueId')
-// 	.get(function () {
-// 		return this.filename.substring(0, this.filename.indexOf('.'))
-// 	})
+// https://mongoosejs.com/docs/tutorials/lean.html
+// Permitimos virtuals al usar lean()
+ImageSchema.plugin(require('mongoose-lean-virtuals'))
+
+ImageSchema.virtual('uniqueId')
+	.get(function () {
+		return this.filename.substring(0, this.filename.indexOf('.'))
+	})
 
 module.exports = mongoose.model('Image', ImageSchema)
