@@ -6,10 +6,23 @@ const { Image, Comment } = require('../models')
 
 const ctrl = {}
 
+const viewsIncrement = async (img) => {
+	const img_mongo = await Image.findById(img._id)
+	img_mongo.views++
+	img.views++
+	await img_mongo.save()
+}
+
 ctrl.index = async (req, res) => {
-	const image = await Image.findOne({filename: {$regex: req.params.image_id}}).lean({virtuals:true})
-	const comments = await Comment.find({image_id: image._id}).sort({ timestamp: -1 }).lean()
-	res.render('image', {image, comments})
+	const viewModel = {image: {}, comments: {}}
+	viewModel.image = await Image.findOne({filename: {$regex: req.params.image_id}}).lean({virtuals:true})
+	if(viewModel.image) {
+		viewModel.comments = await Comment.find({image_id: viewModel.image._id}).sort({ timestamp: -1 }).lean()
+		viewsIncrement(viewModel.image)
+		res.render('image', viewModel)
+	} else {
+		res.redirect('/')
+	}
 }
 
 ctrl.create = (req, res) => {
@@ -46,8 +59,15 @@ ctrl.create = (req, res) => {
 	saveImage()
 }
 
-ctrl.like = (req, res) => {
-	
+ctrl.like = async (req, res) => {
+	const img = await Image.findOne({filename:{$regex: req.params.image_id}})
+	if(img) {
+		img.likes++
+		img.save()
+		res.json({likes: img.likes})
+	} else {
+		res.status(500).json({error: 'Internal Error'})
+	}
 }
 
 ctrl.comment = async (req, res) => {
@@ -58,6 +78,8 @@ ctrl.comment = async (req, res) => {
 		comment.image_id = image._id
 		await comment.save()
 		res.redirect(`/images/${image.uniqueId}`)
+	} else {
+		res.redirect('/')
 	}
 }
 
