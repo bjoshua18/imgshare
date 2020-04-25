@@ -8,7 +8,8 @@ const ctrl = {}
 
 ctrl.index = async (req, res) => {
 	const image = await Image.findOne({filename: {$regex: req.params.image_id}}).lean({virtuals:true})
-	res.render('image', {image})
+	const comments = await Comment.find({image_id: image._id}).sort({ timestamp: -1 }).lean()
+	res.render('image', {image, comments})
 }
 
 ctrl.create = (req, res) => {
