@@ -3,6 +3,7 @@ const fs = require('fs-extra')
 const md5 = require('md5')
 const { getRandomString } = require('../helpers/libs')
 const { Image, Comment } = require('../models')
+const sidebar = require('../helpers/sidebar')
 
 const ctrl = {}
 
@@ -19,6 +20,7 @@ ctrl.index = async (req, res) => {
 	if(viewModel.image) {
 		viewModel.comments = await Comment.find({image_id: viewModel.image._id}).sort({ timestamp: -1 }).lean()
 		viewsIncrement(viewModel.image)
+		await sidebar(viewModel)
 		res.render('image', viewModel)
 	} else {
 		res.redirect('/')
